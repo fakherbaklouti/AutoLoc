@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "contrat")
@@ -29,4 +30,11 @@ public class Contrat {
 
     @Column(nullable = false)
     private Boolean valide;
+
+    @OneToOne
+    @JoinColumn(name = "id_reservation", nullable = false, unique = true)
+    private Reservation reservation;
+
+    @OneToMany(mappedBy = "contrat")
+    private List<Paiement> paiements;
 }

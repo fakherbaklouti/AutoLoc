@@ -1,3 +1,4 @@
+
 package tn.esprit.autoloc.service;
 
 import lombok.RequiredArgsConstructor;
@@ -16,13 +17,20 @@ public class AgenceServiceImpl implements IAgenceService {
 
     @Override
     public Agence create(Agence agence) {
+        if (agence.getIdAgence() != null) {
+            throw new IllegalArgumentException(
+                    "Une nouvelle agence ne doit pas avoir d'identifiant");
+        }
+
+        validateAgence(agence);
         return agenceRepository.save(agence);
     }
 
     @Override
     public Agence getById(Long id) {
         return agenceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Agence introuvable avec l'id : " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Agence", id));
     }
 
     @Override
@@ -33,10 +41,13 @@ public class AgenceServiceImpl implements IAgenceService {
     @Override
     public Agence update(Long id, Agence agence) {
         Agence existing = getById(id);
+        validateAgence(agence);
+
         existing.setNom(agence.getNom());
         existing.setVille(agence.getVille());
         existing.setAdresse(agence.getAdresse());
         existing.setTelephone(agence.getTelephone());
+
         return agenceRepository.save(existing);
     }
 
@@ -44,5 +55,12 @@ public class AgenceServiceImpl implements IAgenceService {
     public void delete(Long id) {
         Agence existing = getById(id);
         agenceRepository.delete(existing);
+    }
+
+    private void validateAgence(Agence agence) {
+        if (agence.getNom() == null || agence.getNom().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Le nom de l'agence est obligatoire");
+        }
     }
 }

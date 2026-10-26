@@ -1,3 +1,4 @@
+
 package tn.esprit.autoloc.service;
 
 import lombok.RequiredArgsConstructor;
@@ -16,13 +17,20 @@ public class EmployeServiceImpl implements IEmployeService {
 
     @Override
     public Employe create(Employe employe) {
+        if (employe.getIdEmploye() != null) {
+            throw new IllegalArgumentException(
+                    "Un nouvel employé ne doit pas avoir d'identifiant");
+        }
+
+        validateEmploye(employe);
         return employeRepository.save(employe);
     }
 
     @Override
     public Employe getById(Long id) {
         return employeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Employé introuvable avec l'id : " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Employe", id));
     }
 
     @Override
@@ -33,10 +41,13 @@ public class EmployeServiceImpl implements IEmployeService {
     @Override
     public Employe update(Long id, Employe employe) {
         Employe existing = getById(id);
+        validateEmploye(employe);
+
         existing.setNom(employe.getNom());
         existing.setPrenom(employe.getPrenom());
         existing.setRole(employe.getRole());
         existing.setAgence(employe.getAgence());
+
         return employeRepository.save(existing);
     }
 
@@ -44,5 +55,22 @@ public class EmployeServiceImpl implements IEmployeService {
     public void delete(Long id) {
         Employe existing = getById(id);
         employeRepository.delete(existing);
+    }
+
+    private void validateEmploye(Employe employe) {
+        if (employe.getNom() == null || employe.getNom().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Le nom de l'employé est obligatoire");
+        }
+
+        if (employe.getPrenom() == null || employe.getPrenom().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Le prénom de l'employé est obligatoire");
+        }
+
+        if (employe.getRole() == null) {
+            throw new IllegalArgumentException(
+                    "Le rôle de l'employé est obligatoire");
+        }
     }
 }

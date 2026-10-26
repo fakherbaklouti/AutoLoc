@@ -6,13 +6,8 @@ import java.util.List;
 
 public interface IPaiementService {
 
-    Paiement create(Paiement paiement);
+    Paiement findById(Long id);
 
-    Paiement getById(Long id);
+    List<Paiement> findAll();
 
-    List<Paiement> getAll();
-
-    Paiement update(Long id, Paiement paiement);
-
-    void delete(Long id);
 }

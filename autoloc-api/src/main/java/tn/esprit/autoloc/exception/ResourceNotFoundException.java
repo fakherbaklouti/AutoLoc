@@ -1,3 +1,4 @@
+
 package tn.esprit.autoloc.exception;
 
 import org.springframework.http.HttpStatus;
@@ -8,5 +9,9 @@ public class ResourceNotFoundException extends RuntimeException {
 
     public ResourceNotFoundException(String message) {
         super(message);
+    }
+
+    public ResourceNotFoundException(String ressource, Long id) {
+        super(ressource + " introuvable avec l'identifiant " + id);
     }
 }

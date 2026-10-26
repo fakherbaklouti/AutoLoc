@@ -1,3 +1,4 @@
+
 package tn.esprit.autoloc.service;
 
 import lombok.RequiredArgsConstructor;
@@ -16,13 +17,20 @@ public class EquipementServiceImpl implements IEquipementService {
 
     @Override
     public Equipement create(Equipement equipement) {
+        if (equipement.getIdEquipement() != null) {
+            throw new IllegalArgumentException(
+                    "Un nouvel équipement ne doit pas avoir d'identifiant");
+        }
+
+        validateEquipement(equipement);
         return equipementRepository.save(equipement);
     }
 
     @Override
     public Equipement getById(Long id) {
         return equipementRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Équipement introuvable avec l'id : " + id));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Equipement", id));
     }
 
     @Override
@@ -33,7 +41,10 @@ public class EquipementServiceImpl implements IEquipementService {
     @Override
     public Equipement update(Long id, Equipement equipement) {
         Equipement existing = getById(id);
+        validateEquipement(equipement);
+
         existing.setLibelle(equipement.getLibelle());
+
         return equipementRepository.save(existing);
     }
 
@@ -41,5 +52,13 @@ public class EquipementServiceImpl implements IEquipementService {
     public void delete(Long id) {
         Equipement existing = getById(id);
         equipementRepository.delete(existing);
+    }
+
+    private void validateEquipement(Equipement equipement) {
+        if (equipement.getLibelle() == null
+                || equipement.getLibelle().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Le libellé de l'équipement est obligatoire");
+        }
     }
 }

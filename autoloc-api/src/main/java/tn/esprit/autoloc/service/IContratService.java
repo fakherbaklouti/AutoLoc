@@ -1,3 +1,4 @@
+
 package tn.esprit.autoloc.service;
 
 import tn.esprit.autoloc.domain.Contrat;
@@ -8,11 +9,11 @@ public interface IContratService {
 
     Contrat create(Contrat contrat);
 
-    Contrat getById(Long id);
+    Contrat findById(Long id);
 
-    List<Contrat> getAll();
+    List<Contrat> findAll();
 
     Contrat update(Long id, Contrat contrat);
 
-    void delete(Long id);
+    void deleteById(Long id);
 }

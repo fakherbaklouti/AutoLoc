@@ -3,6 +3,7 @@ package tn.esprit.autoloc.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.autoloc.domain.Reservation;
+import tn.esprit.autoloc.domain.StatutReservation;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
 import tn.esprit.autoloc.repository.IReservationRepository;
 
@@ -22,6 +23,7 @@ public class ReservationServiceImpl implements IReservationService {
         }
 
         validateReservation(reservation);
+        checkOverlap(reservation, null);
         return reservationRepository.save(reservation);
     }
 
@@ -41,6 +43,7 @@ public class ReservationServiceImpl implements IReservationService {
     public Reservation update(Long id, Reservation reservation) {
         Reservation existing = getById(id);
         validateReservation(reservation);
+        checkOverlap(reservation, id);
 
         existing.setDateDebut(reservation.getDateDebut());
         existing.setDateFin(reservation.getDateFin());
@@ -67,6 +70,22 @@ public class ReservationServiceImpl implements IReservationService {
         if (reservation.getDateFin().isBefore(reservation.getDateDebut())) {
             throw new IllegalArgumentException(
                     "La date de fin ne peut pas être antérieure à la date de début");
+        }
+    }
+
+    private void checkOverlap(Reservation reservation, Long excludeId) {
+        if (reservation.getStatut() != StatutReservation.ANNULEE
+                && reservation.getVehicule() != null
+                && reservation.getVehicule().getIdVehicule() != null) {
+            boolean overlap = reservationRepository.hasOverlappingReservations(
+                    reservation.getVehicule().getIdVehicule(),
+                    reservation.getDateDebut(),
+                    reservation.getDateFin(),
+                    excludeId
+            );
+            if (overlap) {
+                throw new IllegalStateException("Le véhicule est déjà réservé sur cette période");
+            }
         }
     }
 }

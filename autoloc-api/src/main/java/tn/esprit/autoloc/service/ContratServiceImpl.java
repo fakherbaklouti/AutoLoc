@@ -23,6 +23,14 @@ public class ContratServiceImpl implements IContratService {
         }
 
         validateMontant(contrat);
+
+        Long idReservation = contrat.getReservation().getIdReservation();
+
+        if (contratRepository.existsByReservation_IdReservation(idReservation)) {
+            throw new IllegalStateException(
+                    "Cette réservation possède déjà un contrat");
+        }
+
         return contratRepository.save(contrat);
     }
 
@@ -42,6 +50,14 @@ public class ContratServiceImpl implements IContratService {
     public Contrat update(Long id, Contrat contrat) {
         Contrat existing = findById(id);
         validateMontant(contrat);
+
+        Long idReservation = contrat.getReservation().getIdReservation();
+
+        if (contratRepository.existsByReservation_IdReservationAndIdContratNot(
+                idReservation, id)) {
+            throw new IllegalStateException(
+                    "Cette réservation possède déjà un autre contrat");
+        }
 
         existing.setDateSignature(contrat.getDateSignature());
         existing.setMontantTotal(contrat.getMontantTotal());

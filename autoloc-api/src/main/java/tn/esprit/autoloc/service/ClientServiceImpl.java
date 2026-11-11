@@ -1,4 +1,3 @@
-
 package tn.esprit.autoloc.service;
 
 import lombok.RequiredArgsConstructor;
@@ -48,7 +47,9 @@ public class ClientServiceImpl implements IClientService {
         existing.setEmail(client.getEmail());
         existing.setTelephone(client.getTelephone());
         existing.setNumPermis(client.getNumPermis());
-        existing.setDateInscription(client.getDateInscription());
+        if (client.getDateInscription() != null) {
+            existing.setDateInscription(client.getDateInscription());
+        }
 
         return clientRepository.save(existing);
     }

@@ -14,6 +14,7 @@ import tn.esprit.autoloc.web.dto.ContratRequestDto;
 import tn.esprit.autoloc.web.dto.ContratResponseDto;
 import tn.esprit.autoloc.web.mapper.ContratMapper;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -61,6 +62,17 @@ public class ContratController {
         Contrat updated = contratService.update(id, contrat);
 
         return ResponseEntity.ok(contratMapper.toResponse(updated));
+    }
+
+    @PostMapping("/affecter-reservation")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ContratResponseDto affecterContratAReservation(
+            @RequestParam LocalDate dateSignature,
+            @RequestParam LocalDate dateDebut,
+            @RequestParam LocalDate dateFin) {
+
+        return contratService.affecterContratAReservation(
+                dateSignature, dateDebut, dateFin);
     }
 
     @DeleteMapping("/{id}")

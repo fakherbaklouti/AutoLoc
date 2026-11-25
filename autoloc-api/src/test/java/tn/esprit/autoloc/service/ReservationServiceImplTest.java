@@ -8,10 +8,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tn.esprit.autoloc.domain.Client;
+import tn.esprit.autoloc.domain.Contrat;
 import tn.esprit.autoloc.domain.Reservation;
 import tn.esprit.autoloc.domain.StatutReservation;
 import tn.esprit.autoloc.domain.Vehicule;
+import tn.esprit.autoloc.repository.IClientRepository;
+import tn.esprit.autoloc.repository.IContratRepository;
 import tn.esprit.autoloc.repository.IReservationRepository;
+import tn.esprit.autoloc.repository.IVehiculeRepository;
+import tn.esprit.autoloc.web.dto.ReservationResponseDto;
+import tn.esprit.autoloc.web.dto.ReservationWithContratRequestDto;
+import tn.esprit.autoloc.web.mapper.ReservationMapper;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -26,6 +33,18 @@ class ReservationServiceImplTest {
 
     @Mock
     private IReservationRepository reservationRepository;
+
+    @Mock
+    private IClientRepository clientRepository;
+
+    @Mock
+    private IVehiculeRepository vehiculeRepository;
+
+    @Mock
+    private IContratRepository contratRepository;
+
+    @Mock
+    private ReservationMapper reservationMapper;
 
     @InjectMocks
     private ReservationServiceImpl reservationService;
@@ -190,5 +209,57 @@ class ReservationServiceImplTest {
 
         assertEquals("Le véhicule est déjà réservé sur cette période", ex.getMessage());
         verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Crée la réservation et son contrat associé puis retourne le DTO")
+    void creerReservationEtContratAssocieCreeLesDeuxEtRetourneLeDto() {
+        LocalDate dateDebut = LocalDate.of(2026, 6, 1);
+        LocalDate dateFin = LocalDate.of(2026, 6, 10);
+        ReservationWithContratRequestDto request = new ReservationWithContratRequestDto();
+        request.setDateDebut(dateDebut);
+        request.setDateFin(dateFin);
+        request.setStatut(StatutReservation.CONFIRMEE);
+        request.setIdVehicule(1L);
+        request.setIdClient(1L);
+        request.setDateSignature(LocalDate.of(2026, 5, 20));
+        request.setMontantTotal(new java.math.BigDecimal("900.00"));
+        request.setValide(true);
+        ReservationResponseDto response = new ReservationResponseDto();
+
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(vehiculeRepository.findById(1L)).thenReturn(Optional.of(vehicule));
+        when(reservationRepository.hasOverlappingReservations(
+                1L, dateDebut, dateFin, null)).thenReturn(false);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(invocation -> {
+            Reservation saved = invocation.getArgument(0);
+            saved.setIdReservation(10L);
+            return saved;
+        });
+        when(contratRepository.save(any(Contrat.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(reservationMapper.toResponse(any(Reservation.class))).thenReturn(response);
+
+        ReservationResponseDto result = reservationService.creerReservationEtContratAssocie(request);
+
+        assertSame(response, result);
+        org.mockito.ArgumentCaptor<Reservation> reservationCaptor =
+                org.mockito.ArgumentCaptor.forClass(Reservation.class);
+        verify(reservationRepository).save(reservationCaptor.capture());
+        Reservation savedReservation = reservationCaptor.getValue();
+        assertEquals(dateDebut, savedReservation.getDateDebut());
+        assertEquals(dateFin, savedReservation.getDateFin());
+        assertSame(client, savedReservation.getClient());
+        assertSame(vehicule, savedReservation.getVehicule());
+
+        org.mockito.ArgumentCaptor<Contrat> contratCaptor =
+                org.mockito.ArgumentCaptor.forClass(Contrat.class);
+        verify(contratRepository).save(contratCaptor.capture());
+        Contrat savedContrat = contratCaptor.getValue();
+        assertEquals(request.getDateSignature(), savedContrat.getDateSignature());
+        assertEquals(request.getMontantTotal(), savedContrat.getMontantTotal());
+        assertEquals(request.getValide(), savedContrat.getValide());
+        assertSame(savedReservation, savedContrat.getReservation());
+        verify(reservationMapper).toResponse(savedReservation);
     }
 }

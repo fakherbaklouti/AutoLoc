@@ -3,9 +3,15 @@ package tn.esprit.autoloc.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tn.esprit.autoloc.domain.Equipement;
+import tn.esprit.autoloc.domain.Maintenance;
 import tn.esprit.autoloc.domain.Vehicule;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
+import tn.esprit.autoloc.repository.IEquipementRepository;
+import tn.esprit.autoloc.repository.IMaintenanceRepository;
 import tn.esprit.autoloc.repository.IVehiculeRepository;
+import tn.esprit.autoloc.web.dto.VehiculeResponseDto;
+import tn.esprit.autoloc.web.mapper.VehiculeMapper;
 
 import java.util.List;
 
@@ -14,6 +20,9 @@ import java.util.List;
 public class VehiculeServiceImpl implements IVehiculeService {
 
     private final IVehiculeRepository vehiculeRepository;
+    private final IEquipementRepository equipementRepository;
+    private final VehiculeMapper vehiculeMapper;
+    private final IMaintenanceRepository maintenanceRepository;
 
     @Override
     public Vehicule create(Vehicule vehicule) {
@@ -59,6 +68,49 @@ public class VehiculeServiceImpl implements IVehiculeService {
     public void delete(Long id) {
         Vehicule existing = getById(id);
         vehiculeRepository.delete(existing);
+    }
+
+    @Override
+    public VehiculeResponseDto affecterVehiculeAEquipement(
+            Long idVehicule, Long idEquipement) {
+
+        Vehicule vehicule = getById(idVehicule);
+
+        Equipement equipement = equipementRepository.findById(idEquipement)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Equipement", idEquipement));
+
+        if (vehicule.getEquipements() == null) {
+            vehicule.setEquipements(new java.util.ArrayList<>());
+        }
+
+        if (!vehicule.getEquipements().contains(equipement)) {
+            vehicule.getEquipements().add(equipement);
+        }
+
+        Vehicule saved = vehiculeRepository.save(vehicule);
+
+        return vehiculeMapper.toResponse(saved);
+    }
+
+    @Override
+    public VehiculeResponseDto affecterMaintenanceAvehicule(
+            String description, String immatriculation) {
+
+        Maintenance maintenance = maintenanceRepository.findByDescription(description)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Maintenance non trouvée : " + description));
+
+        Vehicule vehicule = vehiculeRepository.findByImmatriculation(immatriculation)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Véhicule non trouvé : " + immatriculation));
+
+        maintenance.setVehicule(vehicule);
+        maintenanceRepository.save(maintenance);
+
+        return vehiculeMapper.toResponse(vehicule);
     }
 
     private void validateVehicule(Vehicule vehicule) {

@@ -13,6 +13,7 @@ import tn.esprit.autoloc.repository.IVehiculeRepository;
 import tn.esprit.autoloc.service.IReservationService;
 import tn.esprit.autoloc.web.dto.ReservationRequestDto;
 import tn.esprit.autoloc.web.dto.ReservationResponseDto;
+import tn.esprit.autoloc.web.dto.ReservationWithContratRequestDto;
 import tn.esprit.autoloc.web.mapper.ReservationMapper;
 
 import java.util.List;
@@ -59,6 +60,23 @@ public class ReservationController {
         Reservation reservation = reservationMapper.toEntity(dto, client, vehicule);
 
         return reservationMapper.toResponse(reservationService.update(id, reservation));
+    }
+
+    @PutMapping("/{id}/affecter-client")
+    public ReservationResponseDto affecterReservationAClient(
+            @PathVariable Long id,
+            @RequestParam String nom,
+            @RequestParam String prenom) {
+
+        return reservationService.affecterReservationAClient(id, nom, prenom);
+    }
+
+    @PostMapping("/avec-contrat")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ReservationResponseDto creerReservationEtContratAssocie(
+            @Valid @RequestBody ReservationWithContratRequestDto requestDTO) {
+
+        return reservationService.creerReservationEtContratAssocie(requestDTO);
     }
 
     @DeleteMapping("/{id}")

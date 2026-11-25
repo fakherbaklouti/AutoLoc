@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import tn.esprit.autoloc.domain.Reservation;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface IReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -20,4 +21,9 @@ public interface IReservationRepository extends JpaRepository<Reservation, Long>
             @Param("dateDebut") LocalDate dateDebut,
             @Param("dateFin") LocalDate dateFin,
             @Param("excludeId") Long excludeId);
+
+    Optional<Reservation> findByDateDebutAndDateFin(
+            LocalDate dateDebut,
+            LocalDate dateFin
+    );
 }

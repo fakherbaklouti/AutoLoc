@@ -55,6 +55,23 @@ public class VehiculeController {
         return vehiculeMapper.toResponse(vehiculeService.update(id, vehicule));
     }
 
+    @PutMapping("/{id}/affecter-equipement/{idEquipement}")
+    public VehiculeResponseDto affecterVehiculeAEquipement(
+            @PathVariable Long id,
+            @PathVariable Long idEquipement) {
+
+        return vehiculeService.affecterVehiculeAEquipement(id, idEquipement);
+    }
+
+    @PutMapping("/affecter-maintenance")
+    public VehiculeResponseDto affecterMaintenanceAvehicule(
+            @RequestParam String description,
+            @RequestParam String immatriculation) {
+
+        return vehiculeService.affecterMaintenanceAvehicule(
+                description, immatriculation);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
